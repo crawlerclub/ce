@@ -46,7 +46,7 @@ const (
 	creatorID     = "creator:id"
 	title         = "title"
 	description   = "description"
-	image         = "image"
+	image         = "image:src"
 	imageAlt      = "image:alt"
 	player        = "player"
 	playerWidth   = "player:width"

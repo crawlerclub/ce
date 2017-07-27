@@ -29,5 +29,9 @@ func TestMeta(t *testing.T) {
 		tw := twitter.GetTwitterCard(ret)
 		j, _ = json.Marshal(tw)
 		t.Log("twitter: ", string(j))
+
+		mt := GetMeta(ret)
+		j, _ = json.Marshal(mt)
+		t.Log("meta: ", string(j))
 	}
 }
