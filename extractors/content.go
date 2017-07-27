@@ -1,4 +1,4 @@
-package main
+package extractors
 
 import (
 	"crypto/md5"
