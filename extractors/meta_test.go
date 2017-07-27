@@ -33,5 +33,7 @@ func TestMeta(t *testing.T) {
 		mt := GetMeta(ret)
 		j, _ = json.Marshal(mt)
 		t.Log("meta: ", string(j))
+
+		FromMeta(ret)
 	}
 }

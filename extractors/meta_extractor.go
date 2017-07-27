@@ -1,6 +1,8 @@
 package extractors
 
 import (
+	"fmt"
+	"html"
 	"regexp"
 	"strings"
 )
@@ -68,9 +70,37 @@ func RawMeta(raw string) []map[string]string {
 		m := make(map[string]string)
 		kvs := ReKV.FindAllStringSubmatch(metas[i][0], -1)
 		for _, kv := range kvs {
-			m[strings.ToLower(kv[1])] = kv[2]
+			m[strings.ToLower(kv[1])] = html.UnescapeString(kv[2])
 		}
 		list = append(list, m)
 	}
 	return list
+}
+
+func FromMeta(meta []map[string]string) {
+	fmt.Println("FromMeta")
+	for _, m := range meta {
+		content, has := m["content"]
+		if !has {
+			continue
+		}
+		name, has := m["name"]
+		if !has {
+			name, has = m["property"]
+			if !has {
+				continue
+			}
+		}
+		switch {
+		case strings.Contains(name, "title"):
+			fmt.Println(name, content)
+		case strings.Contains(name, "desc"):
+			fmt.Println(name, content)
+		case strings.Contains(name, "date") ||
+			strings.Contains(name, "time") ||
+			strings.Contains(name, "_at"):
+			fmt.Println(name, content)
+		}
+	}
+	fmt.Println("\n\n")
 }
