@@ -1,4 +1,4 @@
-package extractors
+package ce
 
 import (
 	"crypto/md5"

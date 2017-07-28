@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/crawlerclub/ce/extractors"
+	"github.com/crawlerclub/ce"
 	"github.com/crawlerclub/x/downloader"
 	"github.com/crawlerclub/x/types"
 )
@@ -22,6 +22,6 @@ func main() {
 		println(res.Error)
 		return
 	}
-	title, content := extractors.Parse("", res.Text)
+	title, content := ce.Parse("", res.Text)
 	fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
 }
