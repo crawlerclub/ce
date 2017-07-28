@@ -2,6 +2,8 @@ package ce
 
 import (
 	"fmt"
+	"github.com/crawlerclub/ce/opengraph"
+	"github.com/crawlerclub/ce/twitter"
 	"github.com/tkuchiki/parsetime"
 	"html"
 	"strings"
@@ -13,15 +15,16 @@ var (
 )
 
 type Doc struct {
-	Url      string    `json:"url"`
-	Title    string    `json:"title"`
-	Text     string    `json:"text"`
-	Html     string    `json:"html"`
-	Images   []string  `json:"images"`
-	Keywords string    `json:"keywords"`
-	Tags     string    `json:"tags"`
-	Author   string    `json:"author"`
-	Date     time.Time `json:"date"`
+	Url      string      `json:"url"`
+	Title    string      `json:"title"`
+	Text     string      `json:"text"`
+	Html     string      `json:"html"`
+	Images   []string    `json:"images"`
+	OgImages interface{} `json:"og_images"`
+	Keywords string      `json:"keywords"`
+	Tags     string      `json:"tags"`
+	Author   string      `json:"author"`
+	Date     time.Time   `json:"date"`
 }
 
 func Parse(url, rawHtml string) *Doc {
@@ -33,19 +36,28 @@ func Parse(url, rawHtml string) *Doc {
 
 	raw := clean(rawHtml) // get cleaned raw html
 	title := getTitle(raw)
-	// choose short title
-	if metaTitle != "" && strings.HasPrefix(title, metaTitle) {
+	if metaTitle != "" && title == "" {
 		title = metaTitle
 	}
+	ogMeta := og.GetOgp(meta)
+	twtrMeta := twitter.GetTwitterCard(meta)
+	if ogMeta != nil && ogMeta.Title != "" {
+		doc.Title = ogMeta.Title
+	} else if twtrMeta != nil && twtrMeta.Title != "" {
+		doc.Title = twtrMeta.Title
+	} else {
+		doc.Title = title
+	}
 
-	doc.Title = title
+	if ogMeta != nil && len(ogMeta.Image) > 0 {
+		doc.OgImages = ogMeta.Image
+	}
 	doc.Tags = htmlMeta.Tags
 	doc.Keywords = htmlMeta.Keywords
 	doc.Author = htmlMeta.Author
 
 	now := time.Now()
 	contTime := getTime(raw, title)
-	fmt.Println("[" + contTime + "]")
 	if contTime != "" {
 		t, _ := TimeParser.Parse(contTime)
 		if now.Sub(t).Seconds() > 61 {
@@ -85,9 +97,21 @@ func Parse(url, rawHtml string) *Doc {
 	// get raw text
 	text := html.UnescapeString(ReTag.ReplaceAllString(raw, ""))
 	content := mainText(text)
+	plainText := content
+	lines := strings.Split(content, "\n")
+	for i, _ := range lines {
+		lines[i] = "<p>" + html.EscapeString(lines[i]) + "</p>"
+	}
+	content = strings.Join(lines, "\n")
+
 	for k, v := range images {
-		content = strings.Replace(content, k, v, -1)
+		if strings.Contains(content, k) {
+			content = strings.Replace(content, k, v, -1)
+			plainText = strings.Replace(plainText, k, "", -1)
+			doc.Images = append(doc.Images, v)
+		}
 	}
 	doc.Html = content
+	doc.Text = plainText
 	return doc
 }

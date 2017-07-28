@@ -38,8 +38,8 @@ var (
 	MonthStr = `(?:(?:jan|feb|mar|apr|may|jun|aug|sep|oct|nov|dec)[a-z]*)`
 	ReDate   = regexp.MustCompile(`(?is)((?:` + MonthStr + `[\.,\-\s]*\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*(\d{4}))|` +
 		`(?:\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*` + MonthStr + `[\.,\-\s]*(\d{4}))|` +
-		`(?:(\d{4}-)\d{1,2}-\d{1,2})|` +
-		`(?:(\d{1,2}-)\d{1,2}-\d{4})|` +
+		`(?:\d{4}.\d{1,2}.\d{1,2})|` +
+		`(?:\d{1,2}.\d{1,2}.\d{4})|` +
 		`(?:(\d{4}年){0,1}\d{1,2}月\d{1,2}日))`)
 
 	ReTime = regexp.MustCompile(`(?is)((?:0?|[12])\d\s*:+\s*[0-5]\d(?:\s*:+\s*[0-5]\d)?(?:\s*[,:.]*\s*(?:am|pm))?|` +

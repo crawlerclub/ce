@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 	//ce.Parse("", res.Text)
-	doc := ce.Parse("", res.Text)
+	doc := ce.Parse(*url, res.Text)
 	j, _ := json.Marshal(doc)
 	fmt.Println(string(j))
 	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
