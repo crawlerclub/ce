@@ -19,9 +19,14 @@ func main() {
 	req := &types.HttpRequest{Url: *url, Method: "GET", UseProxy: false, Platform: "pc"}
 	res := downloader.Download(req)
 	if res.Error != nil {
-		println(res.Error)
+		fmt.Println(res.Error)
 		return
 	}
-	title, content := ce.Parse("", res.Text)
-	fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
+	ce.Parse("", res.Text)
+	/*
+		title, cont := ce.Parse("", res.Text)
+		fmt.Println(title)
+		fmt.Println(cont)
+	*/
+	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
 }

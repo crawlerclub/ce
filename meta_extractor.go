@@ -2,6 +2,7 @@ package ce
 
 import (
 	"fmt"
+	"github.com/tkuchiki/parsetime"
 	"html"
 	"regexp"
 	"strings"
@@ -10,6 +11,8 @@ import (
 var (
 	ReMeta = regexp.MustCompile(`(?ims)<meta.*?>`)
 	ReKV   = regexp.MustCompile(`(?ims)([^\s]+?)\s*?=\s*?"(.+?)"|'(.+?)'`)
+
+	TimeParser, _ = parsetime.NewParseTime()
 )
 
 type Meta struct {
@@ -100,6 +103,8 @@ func FromMeta(meta []map[string]string) {
 			strings.Contains(name, "time") ||
 			strings.Contains(name, "_at"):
 			fmt.Println(name, content)
+			t, _ := TimeParser.Parse(content)
+			fmt.Println(t)
 		}
 	}
 	fmt.Println("\n\n")

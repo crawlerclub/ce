@@ -3,9 +3,12 @@ package ce
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
+	"github.com/tkuchiki/parsetime"
 	"html"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -37,8 +40,8 @@ var (
 	ReH            = regexp.MustCompile(`(?ims)<h\d+.*?>(.*?)</h\d+>`)
 	ReHead         = regexp.MustCompile(`(?ims)<head.*?>(.*?)<\/head>`)
 
-	MonthStr   = `(?:(?:jan|feb|mar|apr|may|jun|aug|sep|oct|nov|dec)[a-z]*)`
-	ReDateTime = regexp.MustCompile(`(?is)((?:` + MonthStr + `[\.,\-\s]*\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*(\d{4}))|` +
+	MonthStr = `(?:(?:jan|feb|mar|apr|may|jun|aug|sep|oct|nov|dec)[a-z]*)`
+	ReDate   = regexp.MustCompile(`(?is)((?:` + MonthStr + `[\.,\-\s]*\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*(\d{4}))|` +
 		`(?:\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*` + MonthStr + `[\.,\-\s]*(\d{4}))|` +
 		`(?:(\d{4}-)\d{1,2}-\d{1,2})|` +
 		`(?:(\d{1,2}-)\d{1,2}-\d{4})|` +
@@ -46,34 +49,12 @@ var (
 
 	ReTime = regexp.MustCompile(`(?is)((?:0?|[12])\d\s*:+\s*[0-5]\d(?:\s*:+\s*[0-5]\d)?(?:\s*[,:.]*\s*(?:am|pm))?|` +
 		`(?:0?|[12])\d\s*[.\s]+\s*[0-5]\d(?:\s*[,:.]*\s*(?:am|pm))+)`)
-
-	ReContinuousA = regexp.MustCompile(`(?is)</a><a`)
-
-	NavSpliters = []string{`|`, `┊`, `-`}
 )
 
 func MD5(text string) string {
 	h := md5.New()
 	h.Write([]byte(text))
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-func isUsefulLine(line string) bool {
-	for _, sep := range NavSpliters {
-		if len(strings.Split(line, sep)) >= 5 {
-			return false
-		}
-	}
-	return true
-}
-
-func getTitle(raw string) string {
-	title := ""
-	ret := ReTitle.FindAllStringSubmatch(raw, -1)
-	if len(ret) > 0 {
-		title = ret[0][1]
-	}
-	return strings.TrimSpace(title)
 }
 
 func clean(raw string) string {
@@ -91,6 +72,59 @@ func clean(raw string) string {
 	}
 	raw = ReMultiNewLine.ReplaceAllString(raw, "\n")
 	return raw
+}
+
+func getTitle(raw string) string {
+	title := ""
+	ret := ReTitle.FindAllStringSubmatch(raw, -1)
+	if len(ret) > 0 {
+		title = ret[0][1]
+	}
+	h := ReH.FindAllStringSubmatch(raw, -1)
+	hTitle := ""
+	for _, i := range h {
+		text := ReTag.ReplaceAllString(i[1], "")
+		ratio := float32(len(text)) / float32(len(i[1]))
+		if ratio < 0.8 {
+			continue
+		}
+		if strings.HasPrefix(title, text) && len(text) > len(hTitle) {
+			hTitle = text
+		}
+	}
+	if len(hTitle) > 0 {
+		title = hTitle
+	}
+	return strings.TrimSpace(title)
+}
+
+func getTime(text, title string) string {
+	bodyText := ReHead.ReplaceAllString(text, "")
+	titlePos := strings.Index(bodyText, title)
+	if titlePos > 0 {
+		bodyText = bodyText[titlePos:]
+	}
+	bodyText = ReTag.ReplaceAllString(bodyText, "")
+	ret := ReDate.FindAllStringSubmatch(bodyText, -1)
+	d := ""
+	t := ""
+	if len(ret) > 0 {
+		d = ret[0][0]
+		d = strings.Replace(d, `年`, `-`, -1)
+		d = strings.Replace(d, `月`, `-`, -1)
+		d = strings.Replace(d, `日`, ``, -1)
+	}
+	ret = ReTime.FindAllStringSubmatch(bodyText, -1)
+	if len(ret) > 0 {
+		t = ret[0][0]
+	}
+	str := d + " " + t
+	fmt.Println(str)
+	dtParser, _ := parsetime.NewParseTime()
+	p, err := dtParser.Parse(str)
+	fmt.Println(p)
+	fmt.Println(err)
+	return ""
 }
 
 func getMain(text string) string {
@@ -119,7 +153,7 @@ func getMain(text string) string {
 						firstMatch = false
 						startFlag = true
 						start = i
-						continue
+						break
 					}
 				}
 			}
@@ -129,7 +163,7 @@ func getMain(text string) string {
 				if indexDist[j] != 0 {
 					startFlag = true
 					start = i
-					continue
+					break
 				}
 			}
 		}
@@ -149,12 +183,13 @@ func getMain(text string) string {
 			endFlag = false
 		}
 	}
-	return strings.TrimSpace(main)
+	return strings.TrimRightFunc(main, unicode.IsSpace)
 }
 
 func Parse(url, raw string) (string, string) {
 	raw = clean(raw)
 	title := getTitle(raw)
+	getTime(raw, title)
 
 	images := make(map[string]string)
 	ret := ReImg.FindAllStringSubmatch(raw, -1)
