@@ -1,11 +1,6 @@
 package ce
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"fmt"
-	"github.com/tkuchiki/parsetime"
-	"html"
 	"regexp"
 	"strings"
 	"unicode"
@@ -35,7 +30,7 @@ var (
 	ReSpaces       = regexp.MustCompile(`(?m)\s+`)
 	ReTag          = regexp.MustCompile(`(?ims)<.*?>`)
 	ReImg          = regexp.MustCompile(`(?ims)<img.*?>`)
-	ReImgSrc       = regexp.MustCompile(`(?ims)<img.+?src=('|")(.+?)('|").*?>`)
+	ReImgSrc       = regexp.MustCompile(`(?ims)<img.+?src=\s*?"(.+?)"|'(.+?)'.*?>`)
 	ReTitle        = regexp.MustCompile(`(?ims)<title.*?>(.+?)</title>`)
 	ReH            = regexp.MustCompile(`(?ims)<h\d+.*?>(.*?)</h\d+>`)
 	ReHead         = regexp.MustCompile(`(?ims)<head.*?>(.*?)<\/head>`)
@@ -50,12 +45,6 @@ var (
 	ReTime = regexp.MustCompile(`(?is)((?:0?|[12])\d\s*:+\s*[0-5]\d(?:\s*:+\s*[0-5]\d)?(?:\s*[,:.]*\s*(?:am|pm))?|` +
 		`(?:0?|[12])\d\s*[.\s]+\s*[0-5]\d(?:\s*[,:.]*\s*(?:am|pm))+)`)
 )
-
-func MD5(text string) string {
-	h := md5.New()
-	h.Write([]byte(text))
-	return hex.EncodeToString(h.Sum(nil))
-}
 
 func clean(raw string) string {
 	lines := strings.Split(raw, "\n")
@@ -118,16 +107,10 @@ func getTime(text, title string) string {
 	if len(ret) > 0 {
 		t = ret[0][0]
 	}
-	str := d + " " + t
-	fmt.Println(str)
-	dtParser, _ := parsetime.NewParseTime()
-	p, err := dtParser.Parse(str)
-	fmt.Println(p)
-	fmt.Println(err)
-	return ""
+	return strings.TrimSpace(d + " " + t)
 }
 
-func getMain(text string) string {
+func mainText(text string) string {
 	lines := strings.Split(text, "\n")
 	var indexDist []int
 	size := len(lines)
@@ -184,27 +167,4 @@ func getMain(text string) string {
 		}
 	}
 	return strings.TrimRightFunc(main, unicode.IsSpace)
-}
-
-func Parse(url, raw string) (string, string) {
-	raw = clean(raw)
-	title := getTitle(raw)
-	getTime(raw, title)
-
-	images := make(map[string]string)
-	ret := ReImg.FindAllStringSubmatch(raw, -1)
-	for _, r := range ret {
-		if len(r) <= 0 {
-			continue
-		}
-		md := MD5(r[0])
-		images[md] = r[0]
-		raw = strings.Replace(raw, r[0], md, -1)
-	}
-	text := html.UnescapeString(ReTag.ReplaceAllString(raw, ""))
-	content := getMain(text)
-	for k, v := range images {
-		content = strings.Replace(content, k, v, -1)
-	}
-	return title, content
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/crawlerclub/ce"
@@ -22,11 +23,9 @@ func main() {
 		fmt.Println(res.Error)
 		return
 	}
-	ce.Parse("", res.Text)
-	/*
-		title, cont := ce.Parse("", res.Text)
-		fmt.Println(title)
-		fmt.Println(cont)
-	*/
+	//ce.Parse("", res.Text)
+	doc := ce.Parse("", res.Text)
+	j, _ := json.Marshal(doc)
+	fmt.Println(string(j))
 	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
 }

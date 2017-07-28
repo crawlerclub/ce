@@ -1,8 +1,6 @@
 package ce
 
 import (
-	"fmt"
-	"github.com/tkuchiki/parsetime"
 	"html"
 	"regexp"
 	"strings"
@@ -11,8 +9,6 @@ import (
 var (
 	ReMeta = regexp.MustCompile(`(?ims)<meta.*?>`)
 	ReKV   = regexp.MustCompile(`(?ims)([^\s]+?)\s*?=\s*?"(.+?)"|'(.+?)'`)
-
-	TimeParser, _ = parsetime.NewParseTime()
 )
 
 type Meta struct {
@@ -28,6 +24,20 @@ const (
 	metaDescription = "description"
 	metaAuthor      = "author"
 )
+
+func RawMeta(raw string) []map[string]string {
+	var list []map[string]string
+	metas := ReMeta.FindAllStringSubmatch(raw, -1)
+	for i := range metas {
+		m := make(map[string]string)
+		kvs := ReKV.FindAllStringSubmatch(metas[i][0], -1)
+		for _, kv := range kvs {
+			m[strings.ToLower(kv[1])] = strings.TrimSpace(html.UnescapeString(kv[2]))
+		}
+		list = append(list, m)
+	}
+	return list
+}
 
 func GetMeta(meta []map[string]string) *Meta {
 	var obj *Meta
@@ -66,25 +76,13 @@ func GetMeta(meta []map[string]string) *Meta {
 	return obj
 }
 
-func RawMeta(raw string) []map[string]string {
-	var list []map[string]string
-	metas := ReMeta.FindAllStringSubmatch(raw, -1)
-	for i := range metas {
-		m := make(map[string]string)
-		kvs := ReKV.FindAllStringSubmatch(metas[i][0], -1)
-		for _, kv := range kvs {
-			m[strings.ToLower(kv[1])] = html.UnescapeString(kv[2])
-		}
-		list = append(list, m)
-	}
-	return list
-}
-
-func FromMeta(meta []map[string]string) {
-	fmt.Println("FromMeta")
+func InfoFromMeta(meta []map[string]string) (string, string, []string) {
+	title := ""
+	desc := ""
+	var times []string
 	for _, m := range meta {
 		content, has := m["content"]
-		if !has {
+		if !has || content == "" {
 			continue
 		}
 		name, has := m["name"]
@@ -96,16 +94,18 @@ func FromMeta(meta []map[string]string) {
 		}
 		switch {
 		case strings.Contains(name, "title"):
-			fmt.Println(name, content)
+			if title == "" || len(content) < len(title) {
+				title = content
+			}
 		case strings.Contains(name, "desc"):
-			fmt.Println(name, content)
+			if desc == "" || len(content) > len(desc) {
+				desc = content
+			}
 		case strings.Contains(name, "date") ||
 			strings.Contains(name, "time") ||
 			strings.Contains(name, "_at"):
-			fmt.Println(name, content)
-			t, _ := TimeParser.Parse(content)
-			fmt.Println(t)
+			times = append(times, content)
 		}
 	}
-	fmt.Println("\n\n")
+	return title, desc, times
 }

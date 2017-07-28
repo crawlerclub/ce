@@ -14,8 +14,7 @@ func TestContent(t *testing.T) {
 	}
 	for _, file := range files {
 		bytes, _ := ioutil.ReadFile(file)
-		title, content := Parse("", string(bytes))
-		t.Log(title)
-		t.Log(content)
+		doc := Parse("", string(bytes))
+		t.Log(doc)
 	}
 }

@@ -34,6 +34,6 @@ func TestMeta(t *testing.T) {
 		j, _ = json.Marshal(mt)
 		t.Log("meta: ", string(j))
 
-		FromMeta(ret)
+		InfoFromMeta(ret)
 	}
 }
