@@ -72,9 +72,11 @@ func getTitle(raw string) string {
 	h := ReH.FindAllStringSubmatch(raw, -1)
 	hTitle := ""
 	for _, i := range h {
-		text := ReTag.ReplaceAllString(i[1], "")
+		text := strings.TrimSpace(ReTag.ReplaceAllString(i[1], ""))
 		ratio := float32(len(text)) / float32(len(i[1]))
-		if ratio < 0.8 {
+		//println(`"` + text + `"`)
+		//println(ratio)
+		if ratio < 0.5 {
 			continue
 		}
 		if strings.HasPrefix(title, text) && len(text) > len(hTitle) {
