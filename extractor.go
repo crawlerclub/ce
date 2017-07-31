@@ -52,9 +52,11 @@ func Parse(url, rawHtml string) *Doc {
 	if ogMeta != nil && len(ogMeta.Image) > 0 {
 		doc.OgImages = ogMeta.Image
 	}
-	doc.Tags = htmlMeta.Tags
-	doc.Keywords = htmlMeta.Keywords
-	doc.Author = htmlMeta.Author
+	if htmlMeta != nil {
+		doc.Tags = htmlMeta.Tags
+		doc.Keywords = htmlMeta.Keywords
+		doc.Author = htmlMeta.Author
+	}
 
 	now := time.Now()
 	contTime := getTime(raw, title)
