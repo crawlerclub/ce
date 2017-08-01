@@ -25,6 +25,7 @@ type Doc struct {
 	Tags     string      `json:"tags"`
 	Author   string      `json:"author"`
 	Date     time.Time   `json:"date"`
+	RawDate  string      `json:"raw_date"`
 }
 
 func Parse(url, rawHtml string) *Doc {
@@ -64,6 +65,7 @@ func Parse(url, rawHtml string) *Doc {
 		t, _ := TimeParser.Parse(contTime)
 		if now.Sub(t).Seconds() > 61 {
 			doc.Date = t
+			doc.RawDate = contTime
 		}
 	}
 	if doc.Date.IsZero() {
