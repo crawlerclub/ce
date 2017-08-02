@@ -7,6 +7,7 @@ import (
 	"github.com/crawlerclub/ce"
 	"github.com/crawlerclub/x/downloader"
 	"github.com/crawlerclub/x/types"
+	"strings"
 )
 
 var (
@@ -23,8 +24,13 @@ func main() {
 		fmt.Println(res.Error)
 		return
 	}
-	//ce.Parse("", res.Text)
-	doc := ce.Parse(*url, res.Text)
+
+	items := strings.Split(res.RemoteAddr, ":")
+	ip := ""
+	if len(items) > 0 {
+		ip = items[0]
+	}
+	doc := ce.ParsePro(*url, res.Text, ip, true)
 	j, _ := json.Marshal(doc)
 	fmt.Println(string(j))
 	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)

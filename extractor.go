@@ -2,38 +2,68 @@ package ce
 
 import (
 	"fmt"
+	"github.com/abadojack/whatlanggo"
 	"github.com/crawlerclub/ce/opengraph"
 	"github.com/crawlerclub/ce/twitter"
+	"github.com/liuzl/ip2loc"
+	"github.com/liuzl/ip2tz"
 	"github.com/tkuchiki/parsetime"
 	"html"
 	"strings"
 	"time"
 )
 
-var (
-	TimeParser, _ = parsetime.NewParseTime()
-)
-
 type Doc struct {
-	Url      string      `json:"url"`
-	Title    string      `json:"title"`
-	Text     string      `json:"text"`
-	Html     string      `json:"html"`
-	Images   []string    `json:"images"`
-	OgImages interface{} `json:"og_images"`
-	Keywords string      `json:"keywords"`
-	Tags     string      `json:"tags"`
-	Author   string      `json:"author"`
-	Date     time.Time   `json:"date"`
-	RawDate  string      `json:"raw_date"`
+	Url      string                 `json:"url"`
+	Title    string                 `json:"title"`
+	Text     string                 `json:"text"`
+	Html     string                 `json:"html"`
+	Lang     string                 `json:"lang"`
+	Country  string                 `json:"country"`
+	Images   []string               `json:"images"`
+	Keywords string                 `json:"keywords"`
+	Tags     string                 `json:"tags"`
+	Author   string                 `json:"author"`
+	PubDate  time.Time              `json:"pub_date"`
+	Debug    map[string]interface{} `json:"debug"`
 }
 
 func Parse(url, rawHtml string) *Doc {
+	return ParsePro(url, rawHtml, "", false)
+}
+
+func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
 	doc := &Doc{Url: url}
+	if debug {
+		doc.Debug = make(map[string]interface{})
+	}
+	loc, err := ip2loc.Find(ip)
+	doc.Country = loc
+	if err != nil {
+		if debug {
+			doc.Debug["error"] = err.Error()
+		}
+	}
+
+	tz, err := ip2tz.CountryToTz(loc)
+	if err != nil {
+		if debug {
+			doc.Debug["error"] = err.Error()
+		}
+		tz = "America/New_York" // use US eastern time by default
+	}
+	timeParser, _ := parsetime.NewParseTime(tz)
 
 	meta := RawMeta(rawHtml)
 	metaTitle, _, metaTimes := InfoFromMeta(meta)
+	if debug {
+		doc.Debug["meta_times"] = metaTimes
+		doc.Debug["meta_title"] = metaTitle
+	}
 	htmlMeta := GetMeta(meta)
+	if debug {
+		doc.Debug["html_meta"] = htmlMeta
+	}
 
 	raw := clean(rawHtml) // get cleaned raw html
 	title := getTitle(raw)
@@ -42,6 +72,10 @@ func Parse(url, rawHtml string) *Doc {
 	}
 	ogMeta := og.GetOgp(meta)
 	twtrMeta := twitter.GetTwitterCard(meta)
+	if debug {
+		doc.Debug["og"] = ogMeta
+		doc.Debug["twitter"] = twtrMeta
+	}
 	if ogMeta != nil && ogMeta.Title != "" {
 		doc.Title = ogMeta.Title
 	} else if twtrMeta != nil && twtrMeta.Title != "" {
@@ -50,9 +84,6 @@ func Parse(url, rawHtml string) *Doc {
 		doc.Title = title
 	}
 
-	if ogMeta != nil && len(ogMeta.Image) > 0 {
-		doc.OgImages = ogMeta.Image
-	}
 	if htmlMeta != nil {
 		doc.Tags = htmlMeta.Tags
 		doc.Keywords = htmlMeta.Keywords
@@ -60,27 +91,42 @@ func Parse(url, rawHtml string) *Doc {
 	}
 
 	now := time.Now()
+	var cDate time.Time
 	contTime := getTime(raw, title)
 	if contTime != "" {
-		t, _ := TimeParser.Parse(contTime)
+		t, _ := timeParser.Parse(contTime)
 		if now.Sub(t).Seconds() > 61 {
-			doc.Date = t
-			doc.RawDate = contTime
+			cDate = t
+			if debug {
+				doc.Debug["content_date_str"] = contTime
+			}
 		}
 	}
-	if doc.Date.IsZero() {
-		tmp := now
-		for _, metaTime := range metaTimes {
-			t, _ := TimeParser.Parse(metaTime)
-			if now.Sub(t).Seconds() < 61 {
-				continue
-			}
-			if tmp.After(t) {
-				tmp = t
-			}
+
+	tmp := now
+	for _, metaTime := range metaTimes {
+		t, _ := timeParser.Parse(metaTime)
+		if now.Sub(t).Seconds() < 61 {
+			continue
 		}
-		if !tmp.Equal(now) {
-			doc.Date = tmp
+		if tmp.After(t) {
+			if debug {
+				doc.Debug["meta_data_str"] = metaTime
+			}
+			tmp = t
+		}
+	}
+	if !tmp.Equal(now) {
+		doc.PubDate = tmp
+		if debug {
+			doc.Debug["pub_time_from"] = "meta"
+		}
+	}
+
+	if doc.PubDate.IsZero() && !cDate.IsZero() {
+		doc.PubDate = cDate
+		if debug {
+			doc.Debug["pub_time_from"] = "content"
 		}
 	}
 
@@ -117,5 +163,10 @@ func Parse(url, rawHtml string) *Doc {
 	}
 	doc.Html = content
 	doc.Text = plainText
+	if doc.Text != "" {
+		doc.Lang = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Text))
+	} else if doc.Title != "" {
+		doc.Lang = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Title))
+	}
 	return doc
 }
