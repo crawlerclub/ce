@@ -9,46 +9,65 @@ import (
 	"github.com/liuzl/ip2tz"
 	"github.com/tkuchiki/parsetime"
 	"html"
+	"net/url"
 	"strings"
 	"time"
 )
 
 type Doc struct {
-	Url      string                 `json:"url"`
-	Title    string                 `json:"title"`
-	Text     string                 `json:"text"`
-	Html     string                 `json:"html"`
-	Lang     string                 `json:"lang"`
-	Country  string                 `json:"country"`
-	Images   []string               `json:"images"`
-	Keywords string                 `json:"keywords"`
-	Tags     string                 `json:"tags"`
-	Author   string                 `json:"author"`
-	PubDate  time.Time              `json:"pub_date"`
-	Debug    map[string]interface{} `json:"debug"`
+	Url          string                 `json:"url"`
+	From         string                 `json:"from"`
+	CanonicalUrl string                 `json:"canonical_url"`
+	Title        string                 `json:"title"`
+	Text         string                 `json:"text"`
+	Html         string                 `json:"html"`
+	Language     string                 `json:"language"`
+	Location     string                 `json:"location"`
+	Favicon      string                 `json:"favicon"`
+	Images       []string               `json:"images"`
+	Tags         string                 `json:"tags"`
+	Author       string                 `json:"author"`
+	PublishDate  time.Time              `json:"publish_date"`
+	Debug        map[string]interface{} `json:"debug,omitempty"`
 }
 
-func Parse(url, rawHtml string) *Doc {
-	return ParsePro(url, rawHtml, "", false)
+func Parse(rawurl, rawHtml string) *Doc {
+	return ParsePro(rawurl, rawHtml, "", false)
 }
 
-func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
-	doc := &Doc{Url: url}
+func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
+	doc := &Doc{Url: rawurl}
 	if debug {
 		doc.Debug = make(map[string]interface{})
 	}
-	loc, err := ip2loc.Find(ip)
-	doc.Country = loc
+
+	pUrl, err := url.Parse(rawurl)
 	if err != nil {
 		if debug {
-			doc.Debug["error"] = err.Error()
+			doc.Debug["url_error"] = err.Error()
+		}
+	} else {
+		doc.From = pUrl.Hostname()
+		doc.Favicon = fmt.Sprintf("%s://%s/favicon.ico", pUrl.Scheme, pUrl.Host)
+	}
+
+	favicon := getFavicon(rawHtml)
+	if favicon != "" {
+		doc.Favicon = favicon
+	}
+
+	loc, err := ip2loc.Find(ip)
+	doc.Location = loc
+	if err != nil {
+		if debug {
+			doc.Debug["ip2loc_error"] = err.Error()
 		}
 	}
 
 	tz, err := ip2tz.CountryToTz(loc)
 	if err != nil {
 		if debug {
-			doc.Debug["error"] = err.Error()
+			doc.Debug["ip2tz_error"] = err.Error()
 		}
 		tz = "America/New_York" // use US eastern time by default
 	}
@@ -84,10 +103,8 @@ func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
 		doc.Title = title
 	}
 
-	if htmlMeta != nil {
-		doc.Tags = htmlMeta.Tags
-		doc.Keywords = htmlMeta.Keywords
-		doc.Author = htmlMeta.Author
+	if ogMeta != nil && ogMeta.Url != "" {
+		doc.CanonicalUrl = ogMeta.Url
 	}
 
 	now := time.Now()
@@ -117,14 +134,14 @@ func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
 		}
 	}
 	if !tmp.Equal(now) {
-		doc.PubDate = tmp
+		doc.PublishDate = tmp
 		if debug {
 			doc.Debug["pub_time_from"] = "meta"
 		}
 	}
 
-	if doc.PubDate.IsZero() && !cDate.IsZero() {
-		doc.PubDate = cDate
+	if doc.PublishDate.IsZero() && !cDate.IsZero() {
+		doc.PublishDate = cDate
 		if debug {
 			doc.Debug["pub_time_from"] = "content"
 		}
@@ -141,7 +158,7 @@ func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
 			continue
 		}
 		md := MD5(r[0])
-		images[md] = fmt.Sprintf("<img src=\"%s\" />", src[0][1])
+		images[md] = src[0][1]
 		raw = strings.Replace(raw, r[0], md, -1)
 	}
 	// get raw text
@@ -156,17 +173,36 @@ func ParsePro(url, rawHtml, ip string, debug bool) *Doc {
 
 	for k, v := range images {
 		if strings.Contains(content, k) {
-			content = strings.Replace(content, k, v, -1)
+			content = strings.Replace(content, k,
+				fmt.Sprintf("<img src=\"%s\" />", v), -1)
 			plainText = strings.Replace(plainText, k, "", -1)
 			doc.Images = append(doc.Images, v)
 		}
 	}
+	if len(doc.Images) == 0 && ogMeta != nil && len(ogMeta.Image) > 0 {
+		doc.Images = append(doc.Images, ogMeta.Image[0].Url)
+		content = fmt.Sprintf("<p><img src=\"%s\" /></p>\n%s",
+			ogMeta.Image[0].Url, content)
+	}
+
 	doc.Html = content
 	doc.Text = plainText
+
+	if htmlMeta != nil {
+		doc.Tags = htmlMeta.Tags
+		if doc.Tags == "" && htmlMeta.Keywords != "" {
+			doc.Tags = htmlMeta.Keywords
+		}
+		if doc.Text == "" && htmlMeta.Description != "" {
+			doc.Text = htmlMeta.Description
+		}
+		doc.Author = htmlMeta.Author
+	}
+
 	if doc.Text != "" {
-		doc.Lang = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Text))
+		doc.Language = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Text))
 	} else if doc.Title != "" {
-		doc.Lang = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Title))
+		doc.Language = whatlanggo.LangToString(whatlanggo.DetectLang(doc.Title))
 	}
 	return doc
 }

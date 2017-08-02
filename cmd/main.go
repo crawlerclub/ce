@@ -14,6 +14,7 @@ var (
 	url = flag.String("url",
 		"http://china.huanqiu.com/article/2017-07/11034896.html",
 		"news url")
+	debug = flag.Bool("debug", false, "debug mode")
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 	if len(items) > 0 {
 		ip = items[0]
 	}
-	doc := ce.ParsePro(*url, res.Text, ip, true)
+	doc := ce.ParsePro(*url, res.Text, ip, *debug)
 	j, _ := json.Marshal(doc)
 	fmt.Println(string(j))
 	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)

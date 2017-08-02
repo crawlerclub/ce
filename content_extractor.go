@@ -45,32 +45,41 @@ var (
 
 	ReTime = regexp.MustCompile(`(?is)((?:0?|[12])\d\s*:+\s*[0-5]\d(?:\s*:+\s*[0-5]\d)?(?:\s*[,:.]*\s*(?:am|pm))?|` +
 		`(?:0?|[12])\d\s*[.\s]+\s*[0-5]\d(?:\s*[,:.]*\s*(?:am|pm))+)`)
+
+	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)"/>`)
 )
 
-func clean(raw string) string {
-	lines := strings.Split(raw, "\n")
+func clean(rawhtml string) string {
+	lines := strings.Split(rawhtml, "\n")
 	for i, _ := range lines {
 		lines[i] = strings.TrimSpace(lines[i])
 	}
-	raw = strings.Join(lines, "\n")
-	//raw = ReContinuousA.ReplaceAllString(raw, "</a> <a")
+	rawhtml = strings.Join(lines, "\n")
 	for _, v := range ReIgnoreBlock {
-		raw = v.ReplaceAllString(raw, "")
+		rawhtml = v.ReplaceAllString(rawhtml, "")
 	}
 	for k, v := range ReNewLineBlock {
-		raw = v.ReplaceAllString(raw, "\n"+k)
+		rawhtml = v.ReplaceAllString(rawhtml, "\n"+k)
 	}
-	raw = ReMultiNewLine.ReplaceAllString(raw, "\n")
-	return raw
+	rawhtml = ReMultiNewLine.ReplaceAllString(rawhtml, "\n")
+	return rawhtml
 }
 
-func getTitle(raw string) string {
+func getFavicon(rawhtml string) string {
+	ret := ReFavicon.FindAllStringSubmatch(rawhtml, -1)
+	if len(ret) > 0 {
+		return ret[0][1]
+	}
+	return ""
+}
+
+func getTitle(rawhtml string) string {
 	title := ""
-	ret := ReTitle.FindAllStringSubmatch(raw, -1)
+	ret := ReTitle.FindAllStringSubmatch(rawhtml, -1)
 	if len(ret) > 0 {
 		title = ret[0][1]
 	}
-	h := ReH.FindAllStringSubmatch(raw, -1)
+	h := ReH.FindAllStringSubmatch(rawhtml, -1)
 	hTitle := ""
 	for _, i := range h {
 		text := strings.TrimSpace(ReTag.ReplaceAllString(i[1], ""))
