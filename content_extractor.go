@@ -46,7 +46,7 @@ var (
 	ReTime = regexp.MustCompile(`(?is)((?:0?|[12])\d\s*:+\s*[0-5]\d(?:\s*:+\s*[0-5]\d)?(?:\s*[,:.]*\s*(?:am|pm))?|` +
 		`(?:0?|[12])\d\s*[.\s]+\s*[0-5]\d(?:\s*[,:.]*\s*(?:am|pm))+)`)
 
-	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)"/>`)
+	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)".*?/>`)
 )
 
 func clean(rawhtml string) string {
