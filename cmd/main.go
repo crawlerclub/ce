@@ -5,8 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/crawlerclub/ce"
-	"github.com/crawlerclub/x/downloader"
-	"github.com/crawlerclub/x/types"
+	"github.com/crawlerclub/dl"
 	"strings"
 )
 
@@ -19,8 +18,8 @@ var (
 
 func main() {
 	flag.Parse()
-	req := &types.HttpRequest{Url: *url, Method: "GET", UseProxy: false, Platform: "pc"}
-	res := downloader.Download(req)
+	req := &dl.HttpRequest{Url: *url, Method: "GET", UseProxy: false, Platform: "pc"}
+	res := dl.Download(req)
 	if res.Error != nil {
 		fmt.Println(res.Error)
 		return
