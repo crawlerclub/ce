@@ -161,13 +161,12 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		if strings.HasPrefix(u, "//") {
 			u = "http:" + u
 		}
+		md := ""
 		absUrl, err := MakeAbsoluteUrl(u, rawurl)
-		if err != nil {
-			u = absUrl
+		if err == nil {
+			md = MD5(r[0])
+			images[md] = absUrl
 		}
-
-		md := MD5(r[0])
-		images[md] = u
 		raw = strings.Replace(raw, r[0], md, -1)
 	}
 	// get raw text
