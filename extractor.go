@@ -157,6 +157,9 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		if len(src) <= 0 {
 			continue
 		}
+		if strings.HasPrefix(src, "//") {
+			src = "http:" + src
+		}
 		md := MD5(r[0])
 		images[md] = src[0][1]
 		raw = strings.Replace(raw, r[0], md, -1)
