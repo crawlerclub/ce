@@ -8,7 +8,7 @@ import (
 
 const (
 	BlocksWidth = 3
-	Threshold   = 600 // in bytes
+	Threshold   = 500 // in bytes
 )
 
 var (

@@ -53,7 +53,10 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 
 	favicon := getFavicon(rawHtml)
 	if favicon != "" {
-		doc.Favicon = favicon
+		absUrl, err := MakeAbsoluteUrl(favicon, rawurl)
+		if err == nil {
+			doc.Favicon = absUrl
+		}
 	}
 
 	loc, err := ip2loc.Find(ip)
