@@ -85,6 +85,8 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	}
 
 	raw := clean(rawHtml) // get cleaned raw html
+
+	// process title begin
 	title := getTitle(raw)
 	if metaTitle != "" && title == "" {
 		title = metaTitle
@@ -102,6 +104,8 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	} else {
 		doc.Title = title
 	}
+	doc.Title = html.UnescapeString(doc.Title)
+	// process title end
 
 	if ogMeta != nil && ogMeta.Url != "" {
 		doc.CanonicalUrl = ogMeta.Url
