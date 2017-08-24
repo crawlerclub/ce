@@ -47,6 +47,8 @@ var (
 		`(?:0?|[12])\d\s*[.\s]+\s*[0-5]\d(?:\s*[,:.]*\s*(?:am|pm))+)`)
 
 	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)".*?/>`)
+
+	ReTitleNoNoisy = regexp.MustCompile(`(?ims)^[^|\-/•—]+`)
 )
 
 func clean(rawhtml string) string {

@@ -108,6 +108,10 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		doc.Title = title
 	}
 	doc.Title = html.UnescapeString(doc.Title)
+	ret := ReTitleNoNoisy.FindAllStringSubmatch(doc.Title, -1)
+	if len(ret) > 0 {
+		doc.Title = ret[0][0]
+	}
 	// process title end
 
 	if ogMeta != nil && ogMeta.Url != "" {
@@ -155,7 +159,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	}
 
 	images := make(map[string]string)
-	ret := ReImg.FindAllStringSubmatch(raw, -1)
+	ret = ReImg.FindAllStringSubmatch(raw, -1)
 	for _, r := range ret {
 		if len(r) <= 0 {
 			continue
