@@ -12,7 +12,6 @@ func TestTitle(t *testing.T) {
 		"./test_data/dailycaller.html",
 		"./test_data/huanqiu.html",
 		"./test_data/sina.html",
-		"./test_data/weiyangx.html",
 	}
 	for _, file := range files {
 		bytes, _ := ioutil.ReadFile(file)

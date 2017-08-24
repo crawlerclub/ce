@@ -110,7 +110,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	doc.Title = html.UnescapeString(doc.Title)
 	ret := ReTitleNoNoisy.FindAllStringSubmatch(doc.Title, -1)
 	if len(ret) > 0 {
-		doc.Title = ret[0][0]
+		doc.Title = strings.TrimSpace(ret[0][0])
 	}
 	// process title end
 
