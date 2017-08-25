@@ -164,21 +164,32 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		if len(r) <= 0 {
 			continue
 		}
+		md := MD5(r[0])
+		img := ""
 		src := ReImgSrc.FindAllStringSubmatch(r[0], -1)
-		if len(src) <= 0 {
+		for _, s := range src {
+			u := s[1]
+			if strings.HasPrefix(u, "data:image") {
+				img = u
+				continue
+			}
+
+			if strings.HasPrefix(u, "//") {
+				u = "http:" + u
+			}
+			absUrl, err := MakeAbsoluteUrl(u, rawurl)
+			if err == nil {
+				img = absUrl
+				break
+			}
+		}
+		if _, ok := IgnoreImgs[img]; ok {
 			continue
 		}
-		u := src[0][1]
-		if strings.HasPrefix(u, "//") {
-			u = "http:" + u
+		if img != "" {
+			images[md] = img
+			raw = strings.Replace(raw, r[0], md, -1)
 		}
-		md := ""
-		absUrl, err := MakeAbsoluteUrl(u, rawurl)
-		if err == nil {
-			md = MD5(r[0])
-			images[md] = absUrl
-		}
-		raw = strings.Replace(raw, r[0], md, -1)
 	}
 	// get raw text
 	text := html.UnescapeString(ReTag.ReplaceAllString(raw, ""))

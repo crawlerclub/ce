@@ -13,11 +13,12 @@ const (
 
 var (
 	ReIgnoreBlock = map[string]*regexp.Regexp{
-		"doctype": regexp.MustCompile(`(?ims)<!DOCTYPE.*?>`),           // raw doctype
-		"comment": regexp.MustCompile(`(?ims)<!--.*?-->`),              // raw comment
-		"script":  regexp.MustCompile(`(?ims)<script.*?>.*?</script>`), // javascript
-		"style":   regexp.MustCompile(`(?ims)<style.*?>.*?</style>`),   // css
-		"link":    regexp.MustCompile(`(?ims)<link.*?>`),               // css
+		"doctype":  regexp.MustCompile(`(?ims)<!DOCTYPE.*?>`),               // raw doctype
+		"comment":  regexp.MustCompile(`(?ims)<!--.*?-->`),                  // raw comment
+		"script":   regexp.MustCompile(`(?ims)<script.*?>.*?</script>`),     // javascript
+		"noscript": regexp.MustCompile(`(?ims)<noscript.*?>.*?</noscript>`), // javascript
+		"style":    regexp.MustCompile(`(?ims)<style.*?>.*?</style>`),       // css
+		"link":     regexp.MustCompile(`(?ims)<link.*?>`),                   // css
 	}
 	ReNewLineBlock = map[string]*regexp.Regexp{
 		"<div>": regexp.MustCompile(`(?is)<div.*?>`),
@@ -30,10 +31,11 @@ var (
 	ReSpaces       = regexp.MustCompile(`(?m)\s+`)
 	ReTag          = regexp.MustCompile(`(?ims)<.*?>`)
 	ReImg          = regexp.MustCompile(`(?ims)<img.*?>`)
-	ReImgSrc       = regexp.MustCompile(`(?ims)<img.+?src=\s*?"(.+?)"|'(.+?)'.*?>`)
-	ReTitle        = regexp.MustCompile(`(?ims)<title.*?>(.+?)</title>`)
-	ReH            = regexp.MustCompile(`(?ims)<h\d+.*?>(.*?)</h\d+>`)
-	ReHead         = regexp.MustCompile(`(?ims)<head.*?>(.*?)<\/head>`)
+	//ReImgSrc       = regexp.MustCompile(`(?ims)<img.+?src=\s*?"(.+?)"|'(.+?)'.*?>`)
+	ReImgSrc = regexp.MustCompile(`(?ims).+?src=\s*?"(.+?)"|'(.+?)'`)
+	ReTitle  = regexp.MustCompile(`(?ims)<title.*?>(.+?)</title>`)
+	ReH      = regexp.MustCompile(`(?ims)<h\d+.*?>(.*?)</h\d+>`)
+	ReHead   = regexp.MustCompile(`(?ims)<head.*?>(.*?)<\/head>`)
 
 	MonthStr = `(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*)`
 	ReDate   = regexp.MustCompile(`(?is)((?:` + MonthStr + `[\.,\-\s]*\d{1,2}(?:st|nd|rd|th)*[\.,\-\s]*(\d{4}))|` +
@@ -49,6 +51,11 @@ var (
 	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)".*?/>`)
 
 	ReTitleNoNoisy = regexp.MustCompile(`(?ims)^[^|\-/•—]+`)
+
+	IgnoreImgs = map[string]bool{
+		"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7": true,
+		"data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=":         true,
+	}
 )
 
 func clean(rawhtml string) string {
