@@ -50,7 +50,9 @@ var (
 
 	ReFavicon = regexp.MustCompile(`(?ims)<link rel="shortcut icon" href="(.+?)".*?/>`)
 
-	ReTitleNoNoisy = regexp.MustCompile(`(?ims)^[^|\-/•—_]+`)
+	//ReTitleNoNoisy = regexp.MustCompile(`(?ims)^[^|\-/•—_]+`)
+	//ReTitleNoNoisy = regexp.MustCompile(`(?ims).*?——+.*|^[^|\-/•—_]+`)
+	ReTitleNoNoisy = regexp.MustCompile(`(?ims)(.*?(——+|--+))?[^|\-/•—_]+`)
 
 	IgnoreImgs = map[string]bool{
 		"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7": true,
