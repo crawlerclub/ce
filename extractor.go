@@ -5,6 +5,7 @@ import (
 	"github.com/abadojack/whatlanggo"
 	"github.com/crawlerclub/ce/opengraph"
 	"github.com/crawlerclub/ce/twitter"
+	"github.com/joeguo/tldextract"
 	"github.com/liuzl/ip2loc"
 	"github.com/liuzl/ip2tz"
 	"github.com/tkuchiki/parsetime"
@@ -17,6 +18,7 @@ import (
 type Doc struct {
 	Url          string                 `json:"url"`
 	From         string                 `json:"from"`
+	SiteInfo     *tldextract.Result     `json:"site_info"`
 	CanonicalUrl string                 `json:"canonical_url"`
 	Title        string                 `json:"title"`
 	Text         string                 `json:"text"`
@@ -30,6 +32,8 @@ type Doc struct {
 	PublishDate  time.Time              `json:"publish_date"`
 	Debug        map[string]interface{} `json:"debug,omitempty"`
 }
+
+var tldExtractor, _ = tldextract.New("./tld.cache", false)
 
 func Parse(rawurl, rawHtml string) *Doc {
 	return ParsePro(rawurl, rawHtml, "", false)
@@ -49,6 +53,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	} else {
 		doc.From = pUrl.Hostname()
 		doc.Favicon = fmt.Sprintf("%s://%s/favicon.ico", pUrl.Scheme, pUrl.Host)
+		doc.SiteInfo = tldExtractor.Extract(rawurl)
 	}
 
 	favicon := getFavicon(rawHtml)
