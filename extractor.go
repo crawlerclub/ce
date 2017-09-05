@@ -54,6 +54,9 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		doc.From = pUrl.Hostname()
 		doc.Favicon = fmt.Sprintf("%s://%s/favicon.ico", pUrl.Scheme, pUrl.Host)
 		doc.SiteInfo = tldExtractor.Extract(rawurl)
+		if doc.SiteInfo.Root != "" && doc.SiteInfo.Tld != "" {
+			doc.From = fmt.Sprintf("%s.%s", doc.SiteInfo.Root, doc.SiteInfo.Tld)
+		}
 	}
 
 	favicon := getFavicon(rawHtml)
