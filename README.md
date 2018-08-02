@@ -11,9 +11,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"strings"
+
 	"github.com/crawlerclub/ce"
 	"github.com/crawlerclub/dl"
-	"strings"
 )
 
 var (
@@ -25,8 +26,7 @@ var (
 
 func main() {
 	flag.Parse()
-	req := &dl.HttpRequest{Url: *url, Method: "GET"}
-	res := dl.Download(req)
+	res := dl.DownloadUrl(*url)
 	if res.Error != nil {
 		fmt.Println(res.Error)
 		return

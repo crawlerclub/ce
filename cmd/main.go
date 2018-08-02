@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"strings"
+
 	"github.com/crawlerclub/ce"
 	"github.com/crawlerclub/dl"
-	"strings"
 )
 
 var (
@@ -18,8 +19,7 @@ var (
 
 func main() {
 	flag.Parse()
-	req := &dl.HttpRequest{Url: *url, Method: "GET", UseProxy: false, Platform: "pc"}
-	res := dl.Download(req)
+	res := dl.DownloadUrl(*url)
 	if res.Error != nil {
 		fmt.Println(res.Error)
 		return
@@ -33,5 +33,4 @@ func main() {
 	doc := ce.ParsePro(*url, res.Text, ip, *debug)
 	j, _ := json.Marshal(doc)
 	fmt.Println(string(j))
-	//fmt.Println("title:\n", title, "\n=================\n\ncontent:\n", content)
 }
