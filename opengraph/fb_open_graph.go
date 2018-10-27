@@ -17,13 +17,13 @@ type Ogp struct {
 	Url   string      `json:"url"`   // og:url
 
 	// optional metadata
-	Audio           []*OgpAudio `json:"audio"`          // og:audio
-	Description     string      `json:"description"`    // og:description
-	Determiner      string      `json:"determiner"`     // og:determiner
-	Locale          string      `json:"locale"`         // og:locale
-	LocaleAlternate []string    `json:locale_alternate` // og:locale:alternate
-	SiteName        string      `json:"site_name"`      // og:site_name
-	Video           []*OgpVideo `json:"video"`          // og:video
+	Audio           []*OgpAudio `json:"audio"`            // og:audio
+	Description     string      `json:"description"`      // og:description
+	Determiner      string      `json:"determiner"`       // og:determiner
+	Locale          string      `json:"locale"`           // og:locale
+	LocaleAlternate []string    `json:"locale_alternate"` // og:locale:alternate
+	SiteName        string      `json:"site_name"`        // og:site_name
+	Video           []*OgpVideo `json:"video"`            // og:video
 }
 
 type OgpImage struct {
@@ -154,7 +154,7 @@ func GetOgp(meta []map[string]string) *Ogp {
 		case title:
 			obj.Title = content
 		case typ:
-			obj.Type = obj.Type
+			//obj.Type = obj.Type
 		case image:
 			if img != nil {
 				obj.Image = append(obj.Image, img)

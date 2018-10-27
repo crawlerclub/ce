@@ -204,7 +204,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	content := mainText(text)
 	plainText := content
 	lines := strings.Split(content, "\n")
-	for i, _ := range lines {
+	for i := range lines {
 		lines[i] = "<p>" + html.EscapeString(lines[i]) + "</p>"
 	}
 	content = strings.Join(lines, "\n")

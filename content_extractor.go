@@ -63,7 +63,7 @@ var (
 
 func clean(rawhtml string) string {
 	lines := strings.Split(rawhtml, "\n")
-	for i, _ := range lines {
+	for i := range lines {
 		lines[i] = strings.TrimSpace(lines[i])
 	}
 	rawhtml = strings.Join(lines, "\n")
