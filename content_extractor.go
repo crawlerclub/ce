@@ -1,6 +1,7 @@
 package ce
 
 import (
+	"html"
 	"regexp"
 	"strings"
 	"unicode"
@@ -21,11 +22,11 @@ var (
 		"link":     regexp.MustCompile(`(?ims)<link.*?>`),                   // css
 	}
 	ReNewLineBlock = map[string]*regexp.Regexp{
-		"<div>": regexp.MustCompile(`(?is)<div.*?>`),
-		"<p>":   regexp.MustCompile(`(?is)<p.*?>`),
-		"<br>":  regexp.MustCompile(`(?is)<br.*?>`),
-		"<hr>":  regexp.MustCompile(`(?is)<hr.*?>`),
-		"<li>":  regexp.MustCompile(`(?is)<li.*?>`),
+		"<div>": regexp.MustCompile(`(?ims)<div.*?>`),
+		"<p>":   regexp.MustCompile(`(?ims)<p.*?>`),
+		"<br>":  regexp.MustCompile(`(?ims)<br.*?>`),
+		"<hr>":  regexp.MustCompile(`(?ims)<hr.*?>`),
+		"<li>":  regexp.MustCompile(`(?ims)<li.*?>`),
 	}
 	ReMultiNewLine = regexp.MustCompile(`(?m)\n+`)
 	ReSpaces       = regexp.MustCompile(`(?m)\s+`)
@@ -62,6 +63,7 @@ var (
 )
 
 func clean(rawhtml string) string {
+	rawhtml = FilterControlChar(rawhtml)
 	lines := strings.Split(rawhtml, "\n")
 	for i := range lines {
 		lines[i] = strings.TrimSpace(lines[i])
@@ -114,6 +116,10 @@ func getTitle(rawhtml string) string {
 func getTime(text, title string) string {
 	bodyText := ReHead.ReplaceAllString(text, "")
 	titlePos := strings.Index(bodyText, title)
+	p := strings.Index(bodyText, html.UnescapeString(title))
+	if p > 0 && p < titlePos {
+		titlePos = p
+	}
 	if titlePos > 0 {
 		bodyText = bodyText[titlePos:]
 	}

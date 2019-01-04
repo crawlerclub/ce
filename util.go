@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"net/url"
+	"unicode"
 )
 
 func MD5(text string) string {
@@ -23,4 +24,15 @@ func MakeAbsoluteUrl(href, baseurl string) (string, error) {
 	}
 	u = base.ResolveReference(u)
 	return u.String(), nil
+}
+
+func FilterControlChar(in string) string {
+	var ret []rune
+	for _, r := range []rune(in) {
+		if unicode.IsControl(r) && r != '\n' {
+			continue
+		}
+		ret = append(ret, r)
+	}
+	return string(ret)
 }
