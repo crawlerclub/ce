@@ -2,17 +2,19 @@ package ce
 
 import (
 	"fmt"
-	"github.com/abadojack/whatlanggo"
-	"github.com/crawlerclub/ce/opengraph"
-	"github.com/crawlerclub/ce/twitter"
-	"github.com/joeguo/tldextract"
-	"github.com/liuzl/ip2loc"
-	"github.com/liuzl/ip2tz"
-	"github.com/tkuchiki/parsetime"
 	"html"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/abadojack/whatlanggo"
+	"github.com/crawlerclub/ce/opengraph"
+	"github.com/crawlerclub/ce/twitter"
+	"github.com/joeguo/tldextract"
+	"github.com/liuzl/goutil"
+	"github.com/liuzl/ip2loc"
+	"github.com/liuzl/ip2tz"
+	"github.com/tkuchiki/parsetime"
 )
 
 type Doc struct {
@@ -61,7 +63,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 
 	favicon := getFavicon(rawHtml)
 	if favicon != "" {
-		absUrl, err := MakeAbsoluteUrl(favicon, rawurl)
+		absUrl, err := goutil.MakeAbsoluteURL(favicon, rawurl)
 		if err == nil {
 			doc.Favicon = absUrl
 		}
@@ -172,7 +174,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		if len(r) <= 0 {
 			continue
 		}
-		md := MD5(r[0])
+		md := goutil.MD5(r[0])
 		img := ""
 		src := ReImgSrc.FindAllStringSubmatch(r[0], -1)
 		for _, s := range src {
@@ -185,7 +187,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 			if strings.HasPrefix(u, "//") {
 				u = "http:" + u
 			}
-			absUrl, err := MakeAbsoluteUrl(u, rawurl)
+			absUrl, err := goutil.MakeAbsoluteURL(u, rawurl)
 			if err == nil {
 				img = absUrl
 				break
