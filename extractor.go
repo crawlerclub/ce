@@ -17,21 +17,22 @@ import (
 )
 
 type Doc struct {
-	Url          string                 `json:"url"`
-	From         string                 `json:"from"`
-	SiteInfo     *tldextract.Result     `json:"site_info"`
-	CanonicalUrl string                 `json:"canonical_url"`
-	Title        string                 `json:"title"`
-	Text         string                 `json:"text"`
-	Html         string                 `json:"html"`
-	Language     string                 `json:"language"`
-	Location     string                 `json:"location"`
-	Favicon      string                 `json:"favicon"`
-	Images       []string               `json:"images"`
-	Tags         string                 `json:"tags"`
-	Author       string                 `json:"author"`
-	PublishDate  time.Time              `json:"publish_date"`
-	Debug        map[string]interface{} `json:"debug,omitempty"`
+	Url             string                 `json:"url"`
+	From            string                 `json:"from"`
+	SiteInfo        *tldextract.Result     `json:"site_info"`
+	CanonicalUrl    string                 `json:"canonical_url"`
+	Title           string                 `json:"title"`
+	Text            string                 `json:"text"`
+	Html            string                 `json:"html"`
+	Language        string                 `json:"language"`
+	Location        string                 `json:"location"`
+	Favicon         string                 `json:"favicon"`
+	Images          []string               `json:"images"`
+	Tags            string                 `json:"tags"`
+	Author          string                 `json:"author"`
+	Published       string                 `json:"published"`
+	PublishedParsed time.Time              `json:"published_parsed"`
+	Debug           map[string]interface{} `json:"debug,omitempty"`
 }
 
 var tldExtractor, _ = tldextract.New("./tld.cache", false)
@@ -133,6 +134,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		t := ParseTime(tz, contTime)
 		if now.Sub(t).Seconds() > 61 {
 			cDate = t
+			doc.Published = contTime
 			if debug {
 				doc.Debug["content_date_str"] = contTime
 			}
@@ -146,6 +148,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 			continue
 		}
 		if tmp.After(t) {
+			doc.Published = metaTime
 			if debug {
 				doc.Debug["meta_data_str"] = metaTime
 			}
@@ -153,14 +156,14 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		}
 	}
 	if !tmp.Equal(now) {
-		doc.PublishDate = tmp
+		doc.PublishedParsed = tmp
 		if debug {
 			doc.Debug["pub_time_from"] = "meta"
 		}
 	}
 
-	if doc.PublishDate.IsZero() && !cDate.IsZero() {
-		doc.PublishDate = cDate
+	if doc.PublishedParsed.IsZero() && !cDate.IsZero() {
+		doc.PublishedParsed = cDate
 		if debug {
 			doc.Debug["pub_time_from"] = "content"
 		}
