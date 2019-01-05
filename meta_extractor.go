@@ -104,7 +104,9 @@ func InfoFromMeta(meta []map[string]string) (string, string, []string) {
 		case strings.Contains(name, "date") ||
 			strings.Contains(name, "time") ||
 			strings.Contains(name, "_at"):
-			times = append(times, content)
+			if ReDate.MatchString(content) || ReTime.MatchString(content) {
+				times = append(times, content)
+			}
 		}
 	}
 	return title, desc, times
