@@ -14,7 +14,6 @@ import (
 	"github.com/liuzl/goutil"
 	"github.com/liuzl/ip2loc"
 	"github.com/liuzl/ip2tz"
-	"github.com/tkuchiki/parsetime"
 )
 
 type Doc struct {
@@ -84,7 +83,6 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 		}
 		tz = "America/New_York" // use US eastern time by default
 	}
-	timeParser, _ := parsetime.NewParseTime(tz)
 
 	meta := RawMeta(rawHtml)
 	metaTitle, _, metaTimes := InfoFromMeta(meta)
@@ -132,7 +130,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	var cDate time.Time
 	contTime := getTime(raw, title)
 	if contTime != "" {
-		t, _ := timeParser.Parse(contTime)
+		t := ParseTime(tz, contTime)
 		if now.Sub(t).Seconds() > 61 {
 			cDate = t
 			if debug {
@@ -143,7 +141,7 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 
 	tmp := now
 	for _, metaTime := range metaTimes {
-		t, _ := timeParser.Parse(metaTime)
+		t := ParseTime(tz, metaTime)
 		if now.Sub(t).Seconds() < 61 {
 			continue
 		}
