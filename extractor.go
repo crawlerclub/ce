@@ -10,16 +10,15 @@ import (
 	"github.com/abadojack/whatlanggo"
 	"github.com/crawlerclub/ce/opengraph"
 	"github.com/crawlerclub/ce/twitter"
-	"github.com/joeguo/tldextract"
 	"github.com/liuzl/goutil"
 	"github.com/liuzl/ip2loc"
 	"github.com/liuzl/ip2tz"
+	"github.com/xgolib/tldextract"
 )
 
 type Doc struct {
 	Url             string                 `json:"url"`
 	From            string                 `json:"from"`
-	SiteInfo        *tldextract.Result     `json:"site_info"`
 	CanonicalUrl    string                 `json:"canonical_url"`
 	Title           string                 `json:"title"`
 	Text            string                 `json:"text"`
@@ -33,9 +32,10 @@ type Doc struct {
 	Published       string                 `json:"published"`
 	PublishedParsed time.Time              `json:"published_parsed"`
 	Debug           map[string]interface{} `json:"debug,omitempty"`
+	//SiteInfo        *tldextract.Result     `json:"site_info"`
 }
 
-var tldExtractor, _ = tldextract.New("./tld.cache", false)
+var tldExtractor, _ = tldextract.NewPro()
 
 func Parse(rawurl, rawHtml string) *Doc {
 	return ParsePro(rawurl, rawHtml, "", false)
@@ -55,9 +55,9 @@ func ParsePro(rawurl, rawHtml, ip string, debug bool) *Doc {
 	} else {
 		doc.From = pUrl.Hostname()
 		doc.Favicon = fmt.Sprintf("%s://%s/favicon.ico", pUrl.Scheme, pUrl.Host)
-		doc.SiteInfo = tldExtractor.Extract(rawurl)
-		if doc.SiteInfo.Root != "" && doc.SiteInfo.Tld != "" {
-			doc.From = fmt.Sprintf("%s.%s", doc.SiteInfo.Root, doc.SiteInfo.Tld)
+		siteInfo := tldExtractor.Extract(rawurl)
+		if siteInfo.Root != "" && siteInfo.Tld != "" {
+			doc.From = fmt.Sprintf("%s.%s", siteInfo.Root, siteInfo.Tld)
 		}
 	}
 
