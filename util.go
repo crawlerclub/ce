@@ -5,7 +5,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/tkuchiki/parsetime"
+	"github.com/liuzl/parsetime"
 )
 
 func FilterControlChar(in string) string {
