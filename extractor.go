@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"crawler.club/ce/opengraph"
+	"crawler.club/ce/twitter"
 	"github.com/abadojack/whatlanggo"
-	"github.com/crawlerclub/ce/opengraph"
-	"github.com/crawlerclub/ce/twitter"
-	"github.com/liuzl/goutil"
 	"github.com/liuzl/ip2loc"
 	"github.com/liuzl/ip2tz"
 	"github.com/xgolib/tldextract"
+	"zliu.org/goutil"
 )
 
 type Doc struct {

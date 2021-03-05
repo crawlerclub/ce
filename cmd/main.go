@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/crawlerclub/ce"
-	"github.com/crawlerclub/dl"
+	"crawler.club/ce"
+	"crawler.club/dl"
 )
 
 var (

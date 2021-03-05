@@ -2,10 +2,11 @@ package ce
 
 import (
 	"encoding/json"
-	"github.com/crawlerclub/ce/opengraph"
-	"github.com/crawlerclub/ce/twitter"
 	"io/ioutil"
 	"testing"
+
+	"crawler.club/ce/opengraph"
+	"crawler.club/ce/twitter"
 )
 
 func TestMeta(t *testing.T) {
