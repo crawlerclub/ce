@@ -15,6 +15,7 @@ func TestMeta(t *testing.T) {
 		"./test_data/dailycaller.html",
 		"./test_data/huanqiu.html",
 		"./test_data/sina.html",
+		"./test_data/qq.html",
 	}
 	for _, file := range files {
 		bytes, _ := ioutil.ReadFile(file)
@@ -35,6 +36,8 @@ func TestMeta(t *testing.T) {
 		j, _ = json.Marshal(mt)
 		t.Log("meta: ", string(j))
 
-		InfoFromMeta(ret)
+		_, _, fm := InfoFromMeta(ret)
+		j, _ = json.Marshal(fm)
+		t.Log("InfoFromMeta: ", string(j))
 	}
 }
