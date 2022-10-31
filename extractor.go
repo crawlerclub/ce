@@ -35,7 +35,7 @@ type Doc struct {
 	//SiteInfo        *tldextract.Result     `json:"site_info"`
 }
 
-var tldExtractor, _ = tldextract.NewPro()
+var tldExtractor, _ = tldextract.New("tld.cache", false)
 
 func Parse(rawurl, rawHtml string) *Doc {
 	return ParsePro(rawurl, rawHtml, "", false)
